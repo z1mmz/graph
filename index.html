@@ -35,21 +35,31 @@
           var fileConts = fs.readFileSync("./data.json",'utf8')
           var json = JSON.parse(fileConts);
           console.log(json);
+          sigma.classes.graph.addMethod('neighbors', function(nodeId) {
+          var k,
+              neighbors = {},
+              index = this.allNeighborsIndex[nodeId] || {};
+
+          for (k in index)
+            neighbors[k] = this.nodesIndex[k];
+
+          return neighbors;
+        });
 
 
     var s = new sigma({
       graph: null,
       container: 'container'
-    },
-    function(s) {
-      // We first need to save the original colors of our
-      // nodes and edges, like this:
-      s.graph.nodes().forEach(function(n) {
-        n.originalColor = n.color;
-      });
-      s.graph.edges().forEach(function(e) {
-        e.originalColor = e.color;
-      });
+    }, function(s) {
+              s.graph.nodes().forEach(function(n) {
+                n.originalColor = n.color;
+              });
+              s.graph.edges().forEach(function(e) {
+                e.originalColor = e.color;
+              });});
+s.forceAtlas2 = true;
+
+
     s.bind('clickNode', function(e) {
         var nodeId = e.data.node.id,
             toKeep = s.graph.neighbors(nodeId);
@@ -61,19 +71,26 @@
           else
             n.color = '#eee';
         });
+        s.graph.edges().forEach(function(e) {
+  if (toKeep[e.source] && toKeep[e.target])
+    e.color = e.originalColor;
+  else
+    e.color = '#eee';
+});
+        s.refresh();
       });
-    });
 
-    var N = 50;
-    var E = 500;
+    var N = 100;
+    // var E = 10;
     for (i = 0; i < N; i++){
       s.graph.addNode({
         id: 'n' + i,
         label: 'Node ' + i,
         x: Math.random() * 1000,
         y: Math.random() * 1000,
-        size: Math.random()
+        size: 5
       });
+      s.refresh();
     }
 
 
